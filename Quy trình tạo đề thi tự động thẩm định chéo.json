@@ -1,0 +1,521 @@
+{
+  "name": "Quy trình tạo đề thi tự động thẩm định chéo",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1-PvcbDka-bWVwv6okCZNWi2Spq8zfn3J4B1FKVmCkfA",
+          "mode": "list",
+          "cachedResultName": "Tạo đề thi tự động",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-PvcbDka-bWVwv6okCZNWi2Spq8zfn3J4B1FKVmCkfA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1913951706,
+          "mode": "list",
+          "cachedResultName": "Câu trả lời biểu mẫu 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-PvcbDka-bWVwv6okCZNWi2Spq8zfn3J4B1FKVmCkfA/edit#gid=1913951706"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        -240
+      ],
+      "id": "d025e4ea-a24c-4c9b-a108-b80610bc46c6",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "vwvjG7Sv3vpxTRkN",
+          "name": "Google Sheets Trigger account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "={{ $json['Link Doc'] }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        -240
+      ],
+      "id": "ec3c0659-2b58-4df9-bef7-8f08795f1fd2",
+      "name": "Get a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "rBbiDXrj2JN59VLV",
+          "name": "Google Docs account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output[0].content[0].text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        432,
+        -240
+      ],
+      "id": "95db6f10-7f76-42f2-a6e0-a032af2ffa5d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -752,
+        144
+      ],
+      "id": "0f6e2679-7da6-4113-a734-126a3dc718d9",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        144
+      ],
+      "id": "abdf1f5c-4ada-4d6a-8dc7-8649ded950ec",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "f49ba211-1806-49e4-a444-2bee1bf5ee6a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "n7ZyDlgI0RyhHCTG",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Hãy đóng vai là một trợ lý giảng dạy, khi nhận được tài liệu  {{ $json.output }}\nhãy bóc tách thành các phần :\n- phần 1 : các câu hỏi thành một dạng danh sách . Mỗi phần tử bao gồm :'cau_hoi', 'dap_an_A', 'dap_an_B', 'dap_an_C', 'dap_an_D'.\n- phần 2 : phần tự luận bao gồm : \"cau_hoi\", \"phan_tra_loi\""
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        -240
+      ],
+      "id": "50051f32-0686-4fab-b275-183b54fc586a",
+      "name": "Bóc tách nội dung",
+      "credentials": {
+        "openAiApi": {
+          "id": "n7ZyDlgI0RyhHCTG",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content }}",
+        "options": {
+          "systemMessage": " Hãy đóng vai là một trợ lý học thuật, khi nhận được mẫu đề thi, hãy lấy thông tin và lập một đề thi theo ma trận :\nPhần 1: Trắc nghiệm (14 câu)\n- Biết: 7 câu\n- Hiểu: 4 câu\n- Vận dụng: 3 câu\nPhần 2: Tự luận (2 bài)\n- 1 bài mức hiểu\n- 1 bài vận dụng"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -240,
+        -240
+      ],
+      "id": "630251da-e3ec-4bb1-834d-ac4c5e1af43b",
+      "name": "Lập dàn ý đề thi"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        -48
+      ],
+      "id": "7fa6aabc-d96a-4a77-af81-3aca0ed23eb4",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "n7ZyDlgI0RyhHCTG",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json['output[0].content[0].text'] }}",
+        "options": {
+          "systemMessage": "=Bạn là giáo viên Toán phổ thông.\nHãy định dạng nội dung sau thành đề thi hoàn chỉnh để xuất ra Google Drive:\nThông tin đề:\n- Lớp: {{ $('Google Sheets Trigger').item.json['Lớp'] }}\n- Môn: {{ $('Google Sheets Trigger').item.json['Môn'] }}\n- Chủ đề:{{ $('Google Sheets Trigger').item.json['Chủ đề'] }} \n- Thời gian: 45p\nNội dung đề:\n{{ $json['output[0].content[0].text'] }}\nYêu cầu trình bày:\n1)Đầu trang:\n- In hoa tên đề\n- Canh giữa\n- Có dòng ghi thời gian làm bài\n- Có dòng Họ tên – Lớp\n2) Nội dung:\n- Chia rõ PHẦN I: TRẮC NGHIỆM\n- PHẦN II: TỰ LUẬN\n- Mỗi câu xuống dòng rõ ràng\n3) Cuối trang:\n- Ghi chú: \"Học sinh không được sử dụng tài liệu\"\n4) Định dạng:\n- Phù hợp in giấy A4\n- Không dùng markdown\n- Không dùng ký hiệu đặc biệt"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        704,
+        -240
+      ],
+      "id": "a07cf2b1-bd4b-4ad0-ba3d-fcc68db70d41",
+      "name": "Tạo bài thi hoàn chỉnh"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        352
+      ],
+      "id": "0cebd91a-27c7-46d9-a636-294fcd38c4c5",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "n7ZyDlgI0RyhHCTG",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        48,
+        352
+      ],
+      "id": "814caabc-784b-42db-b2f6-13d9725b2740",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "n7ZyDlgI0RyhHCTG",
+          "name": "OpenAi account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data[0].output }}",
+        "options": {
+          "systemMessage": "Bạn đóng vai trò là Hội đồng thẩm định đề thi độc lập. Hãy rà soát bộ đề thi vừa tạo dựa trên các tiêu chí:\n1.Tính chính xác về mặt kiến thức (đặc biệt là các khái niệm Đại số/Toán học).\n2.Độ khó có khớp với ma trận dàn ý không?\nKiểm tra lỗi chính tả và định dạng. Nếu phát hiện lỗi hoặc điểm chưa hợp lý, hãy trực tiếp chỉnh sửa và đưa ra bản thảo hoàn thiện nhất "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -288,
+        144
+      ],
+      "id": "f50c3e4a-4da6-4526-99fb-090485c0af50",
+      "name": "Chỉnh sửa đề thi"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "=Bạn là giáo viên Toán phổ thông.\nHãy tổng hợp lại toàn bộ nội dung đã qua thẩm định. Định dạng đề thi thành một văn bản hoàn chỉnh có :\nDữ liệu đầu vào:\n\n- Lớp: {{ $('Google Sheets Trigger').item.json['Lớp'] }}\n- Môn học: {{ $('Google Sheets Trigger').item.json['Môn'] }}\n- Chủ đề: {{ $('Google Sheets Trigger').item.json['Chủ đề'] }}\n- Thời gian làm bài: 90p\n\nNội dung câu hỏi:\n{{ $json.output }}\n\nYÊU CẦU BẮT BUỘC:\n\n1. CHỈ ĐƯỢC PHÉP XUẤT RA:\n- Tên đề thi\n- Thời gian làm bài\n- Dòng Họ tên – Lớp\n- Nội dung câu hỏi (trắc nghiệm, tự luận)\n\n2. KHÔNG ĐƯỢC PHÉP XUẤT RA:\n- Nhận xét\n- Rà soát\n- Đánh giá\n- Kết luận\n- Ghi chú cho giáo viên\n- Bất kỳ đoạn văn giải thích nào\n\n4.Hình thức trình bày:\n- Chia rõ PHẦN I: TRẮC NGHIỆM, PHẦN II: TỰ LUẬN (nếu có)\n- Phân bố điểm : mỗi câu ghi điểm cụ thể, tổng điểm các câu phải bằng 10\n- Mỗi câu hỏi xuống dòng rõ ràng\n- Phù hợp in giấy A4\n- Loại bỏ hoàn toàn các ký hiệu markdown như ##, ###, **, *, -, •\n- Không dùng ký hiệu đặc biệt\n- Không thêm tiêu đề phụ ngoài nội dung đề\n\nHãy bắt đầu xuất đề thi NGAY, không viết lời dẫn, không giải thích"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        48,
+        144
+      ],
+      "id": "05acb96f-f20f-478a-8877-166e7c566897",
+      "name": "Tổng hơp hoàn chỉnh đề thi"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.output }}",
+        "name": "Đề Thi Toán",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        400,
+        144
+      ],
+      "id": "034e587f-9501-4eb1-9b1f-f0495b4dd25d",
+      "name": "Lưu trữ đề thi",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nwI5inxltOJcoEaA",
+          "name": "Google Drive account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document": {
+      "main": [
+        [
+          {
+            "node": "Lập dàn ý đề thi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Tạo bài thi hoàn chỉnh",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Chỉnh sửa đề thi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Lập dàn ý đề thi",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bóc tách nội dung": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lập dàn ý đề thi": {
+      "main": [
+        [
+          {
+            "node": "Bóc tách nội dung",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tạo bài thi hoàn chỉnh",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tạo bài thi hoàn chỉnh": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Chỉnh sửa đề thi",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Tổng hơp hoàn chỉnh đề thi",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chỉnh sửa đề thi": {
+      "main": [
+        [
+          {
+            "node": "Tổng hơp hoàn chỉnh đề thi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tổng hơp hoàn chỉnh đề thi": {
+      "main": [
+        [
+          {
+            "node": "Lưu trữ đề thi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a751e030-fc01-48dd-a624-1cdb727ad720",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ea02deae2ef296e15941600f695213eaabc46a23691985a997bba8a9f9346a91"
+  },
+  "id": "LgAeBPgM7OM0cMTV-MsoT",
+  "tags": []
+}
